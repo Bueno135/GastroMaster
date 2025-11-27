@@ -1,0 +1,33 @@
+# GastroMaster - Configurações do Apache
+
+# Ativa o mod_rewrite
+RewriteEngine On
+
+# Redireciona para página de login se não estiver autenticado (opcional)
+# Esta regra pode ser ajustada conforme necessário
+
+# Protege arquivos sensíveis
+<FilesMatch "\.(sql|log|ini)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Previne listagem de diretórios
+Options -Indexes
+
+# Configurações de segurança
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# Configurações de encoding
+AddDefaultCharset UTF-8
+
+# Previne acesso direto a arquivos de configuração
+<FilesMatch "^config\.php$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+

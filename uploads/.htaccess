@@ -1,0 +1,12 @@
+# Proteção do diretório de uploads
+# Permite apenas acesso a arquivos de imagem
+
+# Previne listagem de diretórios
+Options -Indexes
+
+# Previne execução de scripts PHP (se suportado)
+<FilesMatch "\.php$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+

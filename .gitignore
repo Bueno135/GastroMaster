@@ -1,0 +1,41 @@
+# GastroMaster - Arquivos a serem ignorados pelo Git
+
+# Arquivos de configuração sensíveis
+config/database.local.php
+
+# Diretório de uploads (exceto arquivos de proteção)
+uploads/*
+!uploads/.htaccess
+!uploads/index.php
+
+# Logs
+*.log
+logs/
+
+# Arquivos temporários
+*.tmp
+*.temp
+*~
+
+# Arquivos do sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Arquivos do editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Arquivos de backup
+*.bak
+*.backup
+
+# Arquivos de cache
+cache/
+tmp/
+
+# Arquivos de sessão (se armazenados em arquivo)
+sessions/
+
