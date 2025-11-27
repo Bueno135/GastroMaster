@@ -1,36 +1,23 @@
 <?php
-/**
- * Página de Visualização de Receita
- * GastroMaster - Sistema de Gerenciamento de Receitas
- */
 
 require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../database/ReceitaRepository.php';
 
-// Verifica se está logado
 requireLogin();
 
 $id = $_GET['id'] ?? 0;
+$erro = '';
 $receita = null;
-$error = '';
 
-if ($id) {
-    $pdo = getConnection();
-    if ($pdo) {
-        try {
-            $stmt = $pdo->prepare("SELECT * FROM receitas WHERE id = ? AND usuario_id = ?");
-            $stmt->execute([$id, $_SESSION['user_id']]);
-            $receita = $stmt->fetch();
-            
-            if (!$receita) {
-                $error = 'Receita não encontrada.';
-            }
-        } catch (PDOException $e) {
-            error_log("Erro ao buscar receita: " . $e->getMessage());
-            $error = 'Erro ao carregar receita.';
-        }
-    }
+if (!$id) {
+    $erro = 'ID da receita não informado.';
 } else {
-    $error = 'ID da receita não informado.';
+    $repositorio = new ReceitaRepository();
+    $receita = $repositorio->findByIdAndUser($id, $_SESSION['user_id']);
+    
+    if (!$receita) {
+        $erro = 'Receita não encontrada.';
+    }
 }
 ?>
 
@@ -46,8 +33,8 @@ if ($id) {
     <?php include __DIR__ . '/../includes/header.php'; ?>
     
     <div class="container">
-        <?php if ($error || !$receita): ?>
-            <div class="alert alert-error"><?php echo $error; ?></div>
+        <?php if ($erro || !$receita): ?>
+            <div class="alert alert-error"><?php echo $erro; ?></div>
             <a href="<?php echo SITE_URL; ?>/receitas/listar.php" class="btn btn-secondary">Voltar</a>
         <?php else: ?>
             <div class="page-header">
@@ -94,4 +81,3 @@ if ($id) {
     <?php include __DIR__ . '/../includes/footer.php'; ?>
 </body>
 </html>
-

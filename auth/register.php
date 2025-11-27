@@ -1,51 +1,41 @@
 <?php
-/**
- * Página de Registro
- * GastroMaster - Sistema de Gerenciamento de Receitas
- */
 
 require_once __DIR__ . '/../config/config.php';
 
-// Se já estiver logado, redireciona para o painel
 if (isLoggedIn()) {
     header('Location: ' . SITE_URL . '/index.php');
     exit();
 }
 
-$error = '';
-$success = '';
+$erro = '';
 
-// Processa o formulário de registro
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nome = sanitize($_POST['nome'] ?? '');
     $email = sanitize($_POST['email'] ?? '');
     $senha = $_POST['senha'] ?? '';
     $confirmar_senha = $_POST['confirmar_senha'] ?? '';
     
-    // Validações
     if (empty($nome) || empty($email) || empty($senha) || empty($confirmar_senha)) {
-        $error = 'Por favor, preencha todos os campos.';
+        $erro = 'Por favor, preencha todos os campos.';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = 'Email inválido.';
+        $erro = 'Email inválido.';
     } elseif (strlen($senha) < 6) {
-        $error = 'A senha deve ter no mínimo 6 caracteres.';
+        $erro = 'A senha deve ter no mínimo 6 caracteres.';
     } elseif ($senha !== $confirmar_senha) {
-        $error = 'As senhas não coincidem.';
+        $erro = 'As senhas não coincidem.';
     } else {
         $pdo = getConnection();
-        if ($pdo) {
+        if (!$pdo) {
+            $erro = 'Erro de conexão com o banco de dados.';
+        } else {
             try {
-                // Verifica se o email já existe
                 $stmt = $pdo->prepare("SELECT id FROM usuarios WHERE email = ?");
                 $stmt->execute([$email]);
                 
                 if ($stmt->fetch()) {
-                    $error = 'Este email já está cadastrado.';
+                    $erro = 'Este email já está cadastrado.';
                 } else {
-                    // Cria hash da senha
                     $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
-                    
-                    // Insere o novo usuário
                     $stmt = $pdo->prepare("INSERT INTO usuarios (nome, email, senha) VALUES (?, ?, ?)");
                     $stmt->execute([$nome, $email, $senha_hash]);
                     
@@ -54,10 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             } catch (PDOException $e) {
                 error_log("Erro no registro: " . $e->getMessage());
-                $error = 'Erro ao processar registro. Tente novamente.';
+                $erro = 'Erro ao processar registro. Tente novamente.';
             }
-        } else {
-            $error = 'Erro de conexão com o banco de dados.';
         }
     }
 }
@@ -78,8 +66,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <h1 class="auth-title">🍳 <?php echo SITE_NAME; ?></h1>
                 <p class="auth-subtitle">Crie sua conta para começar</p>
                 
-                <?php if ($error): ?>
-                    <div class="alert alert-error"><?php echo $error; ?></div>
+                <?php if ($erro): ?>
+                    <div class="alert alert-error"><?php echo $erro; ?></div>
                 <?php endif; ?>
                 
                 <form method="POST" action="" class="auth-form" id="registerForm">
@@ -120,4 +108,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="<?php echo SITE_URL; ?>/assets/js/validation.js"></script>
 </body>
 </html>
-

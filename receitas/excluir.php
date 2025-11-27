@@ -1,56 +1,32 @@
 <?php
-/**
- * Página de Exclusão de Receitas
- * GastroMaster - Sistema de Gerenciamento de Receitas
- */
 
 require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../database/ReceitaRepository.php';
 
-// Verifica se está logado
 requireLogin();
 
 $id = $_GET['id'] ?? 0;
-$error = '';
-$success = '';
+$erro = '';
+$sucesso = '';
 
-if ($id) {
-    $pdo = getConnection();
-    if ($pdo) {
-        try {
-            // Busca a receita para pegar o nome da imagem
-            $stmt = $pdo->prepare("SELECT imagem FROM receitas WHERE id = ? AND usuario_id = ?");
-            $stmt->execute([$id, $_SESSION['user_id']]);
-            $receita = $stmt->fetch();
-            
-            if ($receita) {
-                // Exclui a receita (a imagem será excluída pela foreign key CASCADE ou manualmente)
-                $stmt = $pdo->prepare("DELETE FROM receitas WHERE id = ? AND usuario_id = ?");
-                $stmt->execute([$id, $_SESSION['user_id']]);
-                
-                // Remove a imagem se existir
-                if ($receita['imagem'] && file_exists(UPLOAD_DIR . $receita['imagem'])) {
-                    unlink(UPLOAD_DIR . $receita['imagem']);
-                }
-                
-                $success = 'Receita excluída com sucesso!';
-            } else {
-                $error = 'Receita não encontrada.';
-            }
-        } catch (PDOException $e) {
-            error_log("Erro ao excluir receita: " . $e->getMessage());
-            $error = 'Erro ao excluir receita. Tente novamente.';
-        }
-    } else {
-        $error = 'Erro de conexão com o banco de dados.';
-    }
+if (!$id) {
+    $erro = 'ID da receita não informado.';
 } else {
-    $error = 'ID da receita não informado.';
+    $repositorio = new ReceitaRepository();
+    $imagem = $repositorio->delete($id, $_SESSION['user_id']);
+    
+    if ($imagem === null) {
+        $erro = 'Receita não encontrada.';
+    } elseif ($imagem === false) {
+        $erro = 'Erro ao excluir receita. Tente novamente.';
+    } else {
+        if ($imagem && file_exists(UPLOAD_DIR . $imagem)) {
+            unlink(UPLOAD_DIR . $imagem);
+        }
+        $sucesso = 'Receita excluída com sucesso!';
+    }
 }
 
-// Redireciona após exclusão
-if ($success || $error) {
-    header('Location: ' . SITE_URL . '/receitas/listar.php?msg=' . urlencode($success ?: $error));
-    exit();
-}
-?>
-
+$mensagem = $sucesso ?: $erro;
+header('Location: ' . SITE_URL . '/receitas/listar.php?msg=' . urlencode($mensagem));
+exit();

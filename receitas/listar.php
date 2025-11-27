@@ -1,32 +1,16 @@
 <?php
-/**
- * Página de Listagem de Receitas
- * GastroMaster - Sistema de Gerenciamento de Receitas
- */
 
 require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../database/ReceitaRepository.php';
 
-// Verifica se está logado
 requireLogin();
 
-$pdo = getConnection();
-$receitas = [];
-$message = '';
+$repositorio = new ReceitaRepository();
+$receitas = $repositorio->findAllByUser($_SESSION['user_id']);
 
-// Verifica se há mensagem de sucesso/erro
+$mensagem = '';
 if (isset($_GET['msg'])) {
-    $message = urldecode($_GET['msg']);
-}
-
-// Busca receitas do usuário
-if ($pdo) {
-    try {
-        $stmt = $pdo->prepare("SELECT * FROM receitas WHERE usuario_id = ? ORDER BY data_cadastro DESC");
-        $stmt->execute([$_SESSION['user_id']]);
-        $receitas = $stmt->fetchAll();
-    } catch (PDOException $e) {
-        error_log("Erro ao buscar receitas: " . $e->getMessage());
-    }
+    $mensagem = urldecode($_GET['msg']);
 }
 ?>
 
@@ -47,8 +31,8 @@ if ($pdo) {
             <a href="<?php echo SITE_URL; ?>/receitas/cadastrar.php" class="btn btn-primary">Nova Receita</a>
         </div>
         
-        <?php if ($message): ?>
-            <div class="alert alert-success"><?php echo htmlspecialchars($message); ?></div>
+        <?php if ($mensagem): ?>
+            <div class="alert alert-success"><?php echo htmlspecialchars($mensagem); ?></div>
         <?php endif; ?>
         
         <?php if (empty($receitas)): ?>
@@ -101,4 +85,3 @@ if ($pdo) {
     <?php include __DIR__ . '/../includes/footer.php'; ?>
 </body>
 </html>
-

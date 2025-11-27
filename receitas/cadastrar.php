@@ -1,18 +1,14 @@
 <?php
-/**
- * Página de Cadastro de Receitas
- * GastroMaster - Sistema de Gerenciamento de Receitas
- */
 
 require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../database/ReceitaRepository.php';
+require_once __DIR__ . '/../services/ImageUploader.php';
 
-// Verifica se está logado
 requireLogin();
 
-$error = '';
-$success = '';
+$erro = '';
+$sucesso = '';
 
-// Processa o formulário
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nome = sanitize($_POST['nome'] ?? '');
     $categoria = sanitize($_POST['categoria'] ?? '');
@@ -21,51 +17,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tempo_preparo = sanitize($_POST['tempo_preparo'] ?? '');
     $nivel_dificuldade = sanitize($_POST['nivel_dificuldade'] ?? '');
     
-    // Validações
     if (empty($nome) || empty($categoria) || empty($ingredientes) || 
         empty($modo_preparo) || empty($tempo_preparo) || empty($nivel_dificuldade)) {
-        $error = 'Por favor, preencha todos os campos obrigatórios.';
+        $erro = 'Por favor, preencha todos os campos obrigatórios.';
     } else {
-        // Processa upload de imagem
         $imagem = null;
         if (isset($_FILES['imagem']) && $_FILES['imagem']['error'] !== UPLOAD_ERR_NO_FILE) {
-            $upload = handleImageUpload($_FILES['imagem']);
+            $uploader = new ImageUploader();
+            $upload = $uploader->upload($_FILES['imagem']);
             if (!$upload['success']) {
-                $error = $upload['message'];
+                $erro = $upload['message'];
             } else {
                 $imagem = $upload['filename'];
             }
         }
         
-        if (empty($error)) {
-            $pdo = getConnection();
-            if ($pdo) {
-                try {
-                    $stmt = $pdo->prepare("
-                        INSERT INTO receitas 
-                        (usuario_id, nome, categoria, ingredientes, modo_preparo, tempo_preparo, nivel_dificuldade, imagem) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                    ");
-                    $stmt->execute([
-                        $_SESSION['user_id'],
-                        $nome,
-                        $categoria,
-                        $ingredientes,
-                        $modo_preparo,
-                        $tempo_preparo,
-                        $nivel_dificuldade,
-                        $imagem
-                    ]);
-                    
-                    $success = 'Receita cadastrada com sucesso!';
-                    // Limpa os campos do formulário
-                    $_POST = [];
-                } catch (PDOException $e) {
-                    error_log("Erro ao cadastrar receita: " . $e->getMessage());
-                    $error = 'Erro ao cadastrar receita. Tente novamente.';
-                }
+        if (empty($erro)) {
+            $repositorio = new ReceitaRepository();
+            if ($repositorio->create([
+                'usuario_id' => $_SESSION['user_id'],
+                'nome' => $nome,
+                'categoria' => $categoria,
+                'ingredientes' => $ingredientes,
+                'modo_preparo' => $modo_preparo,
+                'tempo_preparo' => $tempo_preparo,
+                'nivel_dificuldade' => $nivel_dificuldade,
+                'imagem' => $imagem
+            ])) {
+                $sucesso = 'Receita cadastrada com sucesso!';
+                $_POST = [];
             } else {
-                $error = 'Erro de conexão com o banco de dados.';
+                $erro = 'Erro ao cadastrar receita. Tente novamente.';
             }
         }
     }
@@ -89,13 +71,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <a href="<?php echo SITE_URL; ?>/receitas/listar.php" class="btn btn-secondary">Voltar</a>
         </div>
         
-        <?php if ($error): ?>
-            <div class="alert alert-error"><?php echo $error; ?></div>
+        <?php if ($erro): ?>
+            <div class="alert alert-error"><?php echo $erro; ?></div>
         <?php endif; ?>
         
-        <?php if ($success): ?>
+        <?php if ($sucesso): ?>
             <div class="alert alert-success">
-                <?php echo $success; ?>
+                <?php echo $sucesso; ?>
                 <a href="<?php echo SITE_URL; ?>/receitas/listar.php">Ver receitas</a>
             </div>
         <?php endif; ?>
@@ -175,4 +157,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="<?php echo SITE_URL; ?>/assets/js/validation.js"></script>
 </body>
 </html>
-

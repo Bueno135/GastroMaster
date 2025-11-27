@@ -1,58 +1,51 @@
 <?php
-/**
- * Página de Login
- * GastroMaster - Sistema de Gerenciamento de Receitas
- */
 
 require_once __DIR__ . '/../config/config.php';
 
-// Se já estiver logado, redireciona para o painel
 if (isLoggedIn()) {
     header('Location: ' . SITE_URL . '/index.php');
     exit();
 }
 
-$error = '';
-$success = '';
+$erro = '';
+$sucesso = '';
 
-// Processa o formulário de login
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = sanitize($_POST['email'] ?? '');
     $senha = $_POST['senha'] ?? '';
     
     if (empty($email) || empty($senha)) {
-        $error = 'Por favor, preencha todos os campos.';
+        $erro = 'Por favor, preencha todos os campos.';
     } else {
         $pdo = getConnection();
-        if ($pdo) {
+        if (!$pdo) {
+            $erro = 'Erro de conexão com o banco de dados.';
+        } else {
             try {
                 $stmt = $pdo->prepare("SELECT id, nome, email, senha FROM usuarios WHERE email = ?");
                 $stmt->execute([$email]);
-                $user = $stmt->fetch();
+                $usuario = $stmt->fetch();
                 
-                if ($user && password_verify($senha, $user['senha'])) {
-                    $_SESSION['user_id'] = $user['id'];
-                    $_SESSION['user_nome'] = $user['nome'];
-                    $_SESSION['user_email'] = $user['email'];
+                if ($usuario && password_verify($senha, $usuario['senha'])) {
+                    $_SESSION['user_id'] = $usuario['id'];
+                    $_SESSION['user_nome'] = $usuario['nome'];
+                    $_SESSION['user_email'] = $usuario['email'];
                     
                     header('Location: ' . SITE_URL . '/index.php');
                     exit();
                 } else {
-                    $error = 'Email ou senha inválidos.';
+                    $erro = 'Email ou senha inválidos.';
                 }
             } catch (PDOException $e) {
                 error_log("Erro no login: " . $e->getMessage());
-                $error = 'Erro ao processar login. Tente novamente.';
+                $erro = 'Erro ao processar login. Tente novamente.';
             }
-        } else {
-            $error = 'Erro de conexão com o banco de dados.';
         }
     }
 }
 
-// Verifica se há mensagem de sucesso (após registro)
 if (isset($_GET['registered'])) {
-    $success = 'Registro realizado com sucesso! Faça login para continuar.';
+    $sucesso = 'Registro realizado com sucesso! Faça login para continuar.';
 }
 ?>
 
@@ -71,12 +64,12 @@ if (isset($_GET['registered'])) {
                 <h1 class="auth-title">🍳 <?php echo SITE_NAME; ?></h1>
                 <p class="auth-subtitle">Faça login para gerenciar suas receitas</p>
                 
-                <?php if ($error): ?>
-                    <div class="alert alert-error"><?php echo $error; ?></div>
+                <?php if ($erro): ?>
+                    <div class="alert alert-error"><?php echo $erro; ?></div>
                 <?php endif; ?>
                 
-                <?php if ($success): ?>
-                    <div class="alert alert-success"><?php echo $success; ?></div>
+                <?php if ($sucesso): ?>
+                    <div class="alert alert-success"><?php echo $sucesso; ?></div>
                 <?php endif; ?>
                 
                 <form method="POST" action="" class="auth-form" id="loginForm">
@@ -105,4 +98,3 @@ if (isset($_GET['registered'])) {
     <script src="<?php echo SITE_URL; ?>/assets/js/validation.js"></script>
 </body>
 </html>
-
