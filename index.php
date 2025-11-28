@@ -16,12 +16,14 @@ $pdo = getConnection();
 $receitas = [];
 $total_receitas = 0;
 
+// Busca receitas do usuário para exibir no dashboard
 if ($pdo) {
     try {
         $stmt = $pdo->prepare("SELECT * FROM receitas WHERE usuario_id = ? ORDER BY data_cadastro DESC LIMIT 6");
         $stmt->execute([$_SESSION['user_id']]);
         $receitas = $stmt->fetchAll();
         
+        // Conta total de receitas
         $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM receitas WHERE usuario_id = ?");
         $stmt->execute([$_SESSION['user_id']]);
         $total_receitas = $stmt->fetch()['total'];

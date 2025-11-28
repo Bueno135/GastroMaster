@@ -9,6 +9,7 @@ $id = $_GET['id'] ?? 0;
 $erro = '';
 $sucesso = '';
 
+// Exclui receita e imagem associada
 if (!$id) {
     $erro = 'ID da receita não informado.';
 } else {
@@ -20,6 +21,7 @@ if (!$id) {
     } elseif ($imagem === false) {
         $erro = 'Erro ao excluir receita. Tente novamente.';
     } else {
+        // Remove arquivo de imagem do servidor
         if ($imagem && file_exists(UPLOAD_DIR . $imagem)) {
             unlink(UPLOAD_DIR . $imagem);
         }

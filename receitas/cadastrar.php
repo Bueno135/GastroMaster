@@ -9,6 +9,7 @@ requireLogin();
 $erro = '';
 $sucesso = '';
 
+// Processa formulário de cadastro de receita
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nome = sanitize($_POST['nome'] ?? '');
     $categoria = sanitize($_POST['categoria'] ?? '');
@@ -21,6 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         empty($modo_preparo) || empty($tempo_preparo) || empty($nivel_dificuldade)) {
         $erro = 'Por favor, preencha todos os campos obrigatórios.';
     } else {
+        // Processa upload de imagem (opcional)
         $imagem = null;
         if (isset($_FILES['imagem']) && $_FILES['imagem']['error'] !== UPLOAD_ERR_NO_FILE) {
             $uploader = new ImageUploader();
@@ -32,6 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         
+        // Salva receita no banco
         if (empty($erro)) {
             $repositorio = new ReceitaRepository();
             if ($repositorio->create([

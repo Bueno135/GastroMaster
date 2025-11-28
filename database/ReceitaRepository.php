@@ -11,6 +11,7 @@ class ReceitaRepository
         $this->pdo = getConnection();
     }
 
+    // Lista todas as receitas do usuário
     public function findAllByUser($usuarioId)
     {
         if (!$this->pdo) {
@@ -27,6 +28,7 @@ class ReceitaRepository
         }
     }
 
+    // Busca receita específica por ID e usuário
     public function findByIdAndUser($id, $usuarioId)
     {
         if (!$this->pdo) {
@@ -43,6 +45,7 @@ class ReceitaRepository
         }
     }
 
+    // Cadastra nova receita
     public function create($dados)
     {
         if (!$this->pdo) {
@@ -71,6 +74,7 @@ class ReceitaRepository
         }
     }
 
+    // Atualiza receita existente
     public function update($id, $usuarioId, $dados)
     {
         if (!$this->pdo) {
@@ -101,6 +105,7 @@ class ReceitaRepository
         }
     }
 
+    // Exclui receita e retorna nome da imagem
     public function delete($id, $usuarioId)
     {
         if (!$this->pdo) {

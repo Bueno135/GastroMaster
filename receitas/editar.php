@@ -17,6 +17,7 @@ if (!$receita && $id) {
     $erro = 'Receita não encontrada.';
 }
 
+// Processa formulário de edição
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $receita) {
     $nome = sanitize($_POST['nome'] ?? '');
     $categoria = sanitize($_POST['categoria'] ?? '');
@@ -29,6 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $receita) {
         empty($modo_preparo) || empty($tempo_preparo) || empty($nivel_dificuldade)) {
         $erro = 'Por favor, preencha todos os campos obrigatórios.';
     } else {
+        // Mantém imagem atual ou faz upload de nova
         $imagem = $receita['imagem'];
         if (isset($_FILES['imagem']) && $_FILES['imagem']['error'] !== UPLOAD_ERR_NO_FILE) {
             $uploader = new ImageUploader();
@@ -40,6 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $receita) {
             }
         }
         
+        // Atualiza receita no banco
         if (empty($erro)) {
             if ($repositorio->update($id, $_SESSION['user_id'], [
                 'nome' => $nome,

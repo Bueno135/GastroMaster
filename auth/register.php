@@ -9,6 +9,7 @@ if (isLoggedIn()) {
 
 $erro = '';
 
+// Processa formulário de cadastro
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nome = sanitize($_POST['nome'] ?? '');
     $email = sanitize($_POST['email'] ?? '');
@@ -29,12 +30,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $erro = 'Erro de conexão com o banco de dados.';
         } else {
             try {
+                // Verifica se email já existe
                 $stmt = $pdo->prepare("SELECT id FROM usuarios WHERE email = ?");
                 $stmt->execute([$email]);
                 
                 if ($stmt->fetch()) {
                     $erro = 'Este email já está cadastrado.';
                 } else {
+                    // Cria hash da senha e cadastra usuário
                     $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
                     $stmt = $pdo->prepare("INSERT INTO usuarios (nome, email, senha) VALUES (?, ?, ?)");
                     $stmt->execute([$nome, $email, $senha_hash]);

@@ -6,6 +6,7 @@ define('DB_USER', 'root');
 define('DB_PASS', '');
 define('DB_CHARSET', 'utf8mb4');
 
+// Cria conexão com banco de dados usando PDO
 function getConnection()
 {
     try {

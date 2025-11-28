@@ -4,6 +4,7 @@ require_once __DIR__ . '/../config/config.php';
 
 class ImageUploader
 {
+    // Faz upload de imagem com validações de tipo e tamanho
     public function upload($arquivo, $imagemAtual = null)
     {
         if (!isset($arquivo['error']) || is_array($arquivo['error'])) {
